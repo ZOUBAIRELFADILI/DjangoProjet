@@ -1,0 +1,120 @@
+<!-- templates/graphe.html -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard DjangoProject{% endblock %}</title>
+    <!-- Inclure les styles Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Ajouter vos feuilles de style CSS ou des liens ici -->
+    <style>
+        /* Ajouter des styles CSS personnalisés ici */
+        body {
+            background-color: #f3f4f6; /* Couleur de fond gris clair */
+            font-family: 'Arial', sans-serif; /* Police de caractères */
+            display: flex;
+        }
+        .sidebar {
+            background-color: #a0aec0; /* Couleur bleu-gris pour la barre latérale */
+            padding: 20px;
+            color: #2d3748; /* Texte gris foncé dans la barre latérale */
+            width: 20%;
+        }
+        main {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .file-upload {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Barre latérale -->
+    <aside class="sidebar">
+        <h1 class="text-2xl font-bold mb-4">Bienvenue</h1>
+       
+        <h2 class="text-2xl font-semibold text-red-800 mb-6">Importer Fichiers CSV, Excel</h2>
+        
+        <!-- Afficher les erreurs de formulaire -->
+        {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+                {% for error in form.errors %}
+                    <p>{{ error.0 }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Formulaire d'importation de fichiers -->
+        <form method="post" enctype="multipart/form-data" class="mb-6">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <br><br>
+            <button type="submit" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded">Ajouter</button>
+        </form>
+
+        <!-- Formulaire de création de graphique -->
+        <form method="post" action="{% url 'graphe' %}" class="mb-6">
+            {% csrf_token %}
+            
+            <!-- Sélection de l'axe des abscisses -->
+            <div class="mb-4">
+                <label for="column_name1" class="block text-gray-700 text-sm font-bold mb-2">Axe des Abscisses:</label>
+                <select name="column_name1" id="column_name1" class="w-full border border-gray-300 rounded py-2 px-3">
+                    {% for column_name in column_names %}
+                        <option value="{{ column_name }}">{{ column_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Sélection de l'axe des ordonnées -->
+            <div class="mb-4">
+                <label for="column_name2" class="block text-gray-700 text-sm font-bold mb-2">Axe des Ordonnées:</label>
+                <select name="column_name2" id="column_name2" class="w-full border border-gray-300 rounded py-2 px-3">
+                    {% for column_name in column_names %}
+                        <option value="{{ column_name }}">{{ column_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Sélection du type de graphique -->
+            <div class="mb-4">
+                <label for="graph" class="block text-gray-700 text-sm font-bold mb-2">Type Graphique:</label>
+                <select name="graph" id="graph" class="w-full border border-gray-300 rounded py-2 px-3">
+                    {% for graph_type_code, graph_type_display in graph_type_choices %}
+                        <option value="{{ graph_type_code }}">{{ graph_type_display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Bouton pour afficher le graphique -->
+            <button type="submit" class="bg-red-800 hover:bg-red-900 text-white font-bold py-2 px-4 rounded">Afficher le graphique</button>
+        </form>
+
+        <!-- Script JavaScript pour vérifier le type de fichier lors de l'importation -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("id_file").addEventListener("change", function() {
+                    var fileName = this.value;
+                    var ext = fileName.split('.').pop().toLowerCase();
+
+                    if (['csv', 'json', 'xlsx'].indexOf(ext) === -1) {
+                        alert("Type de fichier non pris en charge. Veuillez télécharger un fichier CSV, JSON ou Excel.");
+                        this.value = "";
+                    }
+                });
+            });
+        </script>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main>
+        <section class="bg-white p-8 shadow-lg rounded-lg">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+</body>
+</html>
